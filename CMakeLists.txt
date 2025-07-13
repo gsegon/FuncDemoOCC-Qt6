@@ -63,3 +63,33 @@ target_link_libraries(FuncDemoOCC PRIVATE
         Qt::Gui
         Qt::Widgets
     )
+
+# For Windows
+if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    set(MY_TARGET "FuncDemoOCC")
+    set(QT_INSTALL_PATH  ${Qt6_DIR}/../../../)
+    set(DEBUG_SUFFIX)
+    if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
+        set(DEBUG_SUFFIX "d")
+    endif()
+
+    message("herhe: ${QT_INSTALL_PATH}")
+    if(EXISTS "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll")
+        add_custom_command(TARGET ${MY_TARGET} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E make_directory
+                "$<TARGET_FILE_DIR:${MY_TARGET}>/plugins/platforms/")
+        add_custom_command(TARGET ${MY_TARGET} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy
+                "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll"
+                "$<TARGET_FILE_DIR:${MY_TARGET}>/plugins/platforms/")
+    endif()
+
+endif()
+
+if (WIN32)
+    add_custom_command(
+            TARGET FuncDemoOCC POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_RUNTIME_DLLS:FuncDemoOCC> $<TARGET_FILE_DIR:FuncDemoOCC>
+            COMMAND_EXPAND_LISTS
+    )
+endif ()
